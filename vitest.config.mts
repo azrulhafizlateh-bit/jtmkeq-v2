@@ -8,5 +8,11 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/unit/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      include: ["lib/**"],
+      reporter: ["text", "lcov", "json-summary"],
+      thresholds: { lines: 70, branches: 70, functions: 70, statements: 70 },
+    },
   },
 });

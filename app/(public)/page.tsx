@@ -16,13 +16,13 @@ async function DemoBanner() {
 
 export default function HomePage() {
   return (
-    <>
+    <div className="flex min-h-dvh flex-col">
       <header className="bg-rail text-rail-fg">
         <div className="px-4 py-6 md:px-8">
           <h1 className="text-h1">JTMK e-Quarantine</h1>
         </div>
       </header>
-      <main className="min-h-[calc(100dvh-5rem)] bg-bg">
+      <main className="flex-1 bg-bg">
         <Suspense fallback={null}>
           <DemoBanner />
         </Suspense>
@@ -33,6 +33,6 @@ export default function HomePage() {
           <DistancePlate label="v2" value="Phase 0" arrow />
         </div>
       </main>
-    </>
+    </div>
   );
 }

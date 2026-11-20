@@ -43,6 +43,8 @@ Strategy: **Committed shell + semantic status.** Green owns whole regions (rail,
 | `--border` / `--border-subtle` | `#2A3A33` / `#1F2C26` |
 | `--fg` / `--fg-muted` / `--fg-subtle` | `#E8EFEA` / `#A9B8B0` / `#8A9A92` |
 | `--rail` / `--rail-fg` | `#0D4D33` / `#FFFFFF` |
+| `--rail-active-bg` / `-fg` | `#FFFFFF` / `#0D4D33` |
+| `--destructive-fg` | `#1A0B0A` (white on `#E5534B` is ~3.6:1, fails AA) |
 | `--primary` / `-fg` / `-hover` | `#3DBE85` / `#04110B` / `#55CC97` |
 | `--info` | `#7FA8F0` |
 | `--badge` / `-fg` | `#F2C230` / `#10201A` |

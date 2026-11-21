@@ -7,9 +7,9 @@ describe("cn", () => {
   });
 
   it("keeps the text colour when a custom size overrides a default size", () => {
-    expect(
-      cn("text-sm font-bold bg-primary text-primary-foreground", "text-small"),
-    ).toBe("font-bold bg-primary text-primary-foreground text-small");
+    expect(cn("text-sm font-bold bg-primary text-primary-foreground", "text-small")).toBe(
+      "font-bold bg-primary text-primary-foreground text-small",
+    );
   });
 
   it("lets the later custom size win", () => {

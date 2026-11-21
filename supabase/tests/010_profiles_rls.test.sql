@@ -165,6 +165,7 @@ select is((select public.is_active_user()), true, 'is_active_user() is true for 
 
 -- Service role / SQL editor (no JWT, not authenticated) may administer profiles
 reset role;
+set local request.jwt.claims = '';
 select lives_ok(
   $$update public.profiles set role = 'pa' where id = '00000000-0000-0000-0000-0000000000a3'$$,
   'privileged non-JWT session (service role) can change role'

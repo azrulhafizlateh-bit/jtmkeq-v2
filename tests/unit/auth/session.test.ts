@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  activityCookie,
   INACTIVITY_LIMIT_MS,
   isInactive,
   isProtectedPath,
@@ -12,7 +13,11 @@ const now = 1_800_000_000_000;
 describe("isInactive", () => {
   it("is false at 29 minutes", () => expect(isInactive(now - 29 * MIN, now)).toBe(false));
   it("is true at 31 minutes", () => expect(isInactive(now - 31 * MIN, now)).toBe(true));
-  it("is false for null (first request)", () => expect(isInactive(null, now)).toBe(false));
+  it("is true for null (missing cookie fails closed)", () =>
+    expect(isInactive(null, now)).toBe(true));
+  it("is true for future-dated beyond skew", () =>
+    expect(isInactive(now + 61_000, now)).toBe(true));
+  it("tolerates small skew", () => expect(isInactive(now + 30_000, now)).toBe(false));
   it("is false exactly at the limit", () =>
     expect(isInactive(now - INACTIVITY_LIMIT_MS, now)).toBe(false));
 });
@@ -33,4 +38,15 @@ describe("isProtectedPath", () => {
     "does not protect %s",
     (p) => expect(isProtectedPath(p)).toBe(false),
   );
+});
+
+describe("activityCookie", () => {
+  it("is a browser-session httpOnly lax cookie", () => {
+    const c = activityCookie(now);
+    expect(c.name).toBe("jtmkeq_last_activity");
+    expect(c.value).toBe(String(now));
+    expect(c.options).toMatchObject({ httpOnly: true, sameSite: "lax", path: "/" });
+    expect(c.options).not.toHaveProperty("maxAge");
+    expect(c.options).not.toHaveProperty("expires");
+  });
 });

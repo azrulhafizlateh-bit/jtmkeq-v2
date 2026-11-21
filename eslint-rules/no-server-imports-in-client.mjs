@@ -1,3 +1,4 @@
+// Matches the exact alias strings only; `import "server-only"` in the server modules is the real backstop.
 const FORBIDDEN = ["@/lib/env.server", "@/lib/supabase/admin", "@/lib/auth/rate-limit"];
 
 /** Forbids server-only modules in any file whose top-level directives include "use client". */

@@ -3,42 +3,35 @@ import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 import {
   LAST_ACTIVITY_COOKIE,
-  INACTIVITY_LIMIT_MS,
+  activityCookie,
   isInactive,
   isProtectedPath,
   parseLastActivity,
 } from "@/lib/auth/session";
 import type { Database } from "@/lib/supabase/database.types";
 
-type CookieToSet = Parameters<
-  NonNullable<
-    NonNullable<Parameters<typeof createServerClient>[2]["cookies"]> extends infer C
-      ? C extends { setAll?: infer S }
-        ? S
-        : never
-      : never
-  >
->[0];
+type AuthCookie = { name: string; value: string; options: Record<string, unknown> };
 
-const activityCookieOptions = () => ({
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  // Browser-side lifetime only; the server decides inactivity from the value.
-  maxAge: INACTIVITY_LIMIT_MS / 1000,
-});
+function isPrefetch(request: NextRequest): boolean {
+  const h = request.headers;
+  return (
+    h.get("next-router-prefetch") === "1" ||
+    h.get("purpose") === "prefetch" ||
+    h.get("sec-purpose")?.includes("prefetch") === true
+  );
+}
 
 /**
  * Refreshes the Supabase session (getClaims validates the JWT; never getSession),
- * enforces the 30-minute inactivity timeout and redirects unauthenticated
- * requests for protected routes. Follows the @supabase/ssr Next.js pattern:
- * refreshed auth cookies are written to both the request and the response.
+ * enforces the 30-minute inactivity timeout (fail closed) and redirects
+ * unauthenticated requests for protected routes. Follows the @supabase/ssr
+ * Next.js pattern: refreshed auth cookies are written to request and response.
  */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
   const env = publicEnv();
   let response = NextResponse.next({ request });
-  const authCookies: CookieToSet = [];
+  const authCookies: AuthCookie[] = [];
+  const cacheHeaders: Record<string, string> = {};
 
   const supabase = createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
@@ -53,9 +46,8 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
             response.cookies.set(name, value, options);
           }
           authCookies.push(...cookiesToSet);
-          for (const [key, value] of Object.entries(headers ?? {})) {
-            response.headers.set(key, value);
-          }
+          Object.assign(cacheHeaders, headers ?? {});
+          for (const [key, value] of Object.entries(cacheHeaders)) response.headers.set(key, value);
         },
       },
     },
@@ -67,7 +59,7 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const { pathname, search } = request.nextUrl;
   const now = Date.now();
 
-  /** Redirect that keeps any refreshed/cleared Supabase cookies. */
+  /** Redirect that keeps refreshed/cleared Supabase cookies and cache headers. */
   const redirectTo = (path: string, params?: Record<string, string>) => {
     const url = request.nextUrl.clone();
     url.pathname = path;
@@ -75,25 +67,39 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     for (const [k, v] of Object.entries(params ?? {})) url.searchParams.set(k, v);
     const redirect = NextResponse.redirect(url);
     for (const { name, value, options } of authCookies) redirect.cookies.set(name, value, options);
+    for (const [key, value] of Object.entries(cacheHeaders)) redirect.headers.set(key, value);
     return redirect;
   };
 
   if (!authenticated) {
-    if (isProtectedPath(pathname)) {
-      return redirectTo("/login", { next: `${pathname}${search}` });
-    }
-    return response;
+    const result = isProtectedPath(pathname)
+      ? redirectTo("/login", { next: `${pathname}${search}` })
+      : response;
+    if (request.cookies.has(LAST_ACTIVITY_COOKIE)) result.cookies.delete(LAST_ACTIVITY_COOKIE);
+    return result;
   }
 
   const last = parseLastActivity(request.cookies.get(LAST_ACTIVITY_COOKIE)?.value);
   if (isInactive(last, now)) {
-    await supabase.auth.signOut();
+    // Local scope: end only this browser's session, not every device's.
+    const { error } = await supabase.auth.signOut({ scope: "local" });
     const redirect = redirectTo("/login", { reason: "timeout" });
+    if (error) {
+      // Sign-out failed (network/5xx): expire every Supabase auth cookie ourselves.
+      for (const { name } of request.cookies.getAll()) {
+        if (name.startsWith("sb-")) redirect.cookies.set(name, "", { path: "/", maxAge: 0 });
+      }
+    }
     redirect.cookies.delete(LAST_ACTIVITY_COOKIE);
     return redirect;
   }
 
-  const result = pathname === "/login" ? redirectTo("/dashboard") : response;
-  result.cookies.set(LAST_ACTIVITY_COOKIE, String(now), activityCookieOptions());
+  // Only GET/HEAD are bounced away from /login; a POST (login action) must pass.
+  const bounce = pathname === "/login" && (request.method === "GET" || request.method === "HEAD");
+  const result = bounce ? redirectTo("/dashboard") : response;
+  if (!isPrefetch(request)) {
+    const c = activityCookie(now);
+    result.cookies.set(c.name, c.value, c.options);
+  }
   return result;
 }

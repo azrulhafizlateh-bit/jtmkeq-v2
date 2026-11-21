@@ -26,7 +26,7 @@ Failure policy: **block.** A failing check at task end means the task is not don
 | Lint | Zero errors, zero warnings | SPEC §11 | `pnpm lint` (ESLint, `--max-warnings=0`) | task end, CI | 0 |
 | Format | No diff | Consistency | `pnpm format:check` (Prettier) | task end, CI | 0 |
 | Unit tests | All pass | SPEC §11 reliability | `pnpm test` (Vitest) | task end, CI | 0 |
-| Coverage | `lib/**` ≥ 70% lines/branches/functions | SPEC §11 | Vitest v8 coverage thresholds in `vitest.config.ts` | CI | 1 |
+| Coverage | `lib/**` ≥ 70% lines/branches/functions | SPEC §11 | `pnpm test:coverage` (Vitest v8 thresholds in `vitest.config.mts`) | CI | 1 |
 | RLS / DB | All pgTAP tests pass; one test per §7 policy | SPEC §7, §11 | `supabase test db` on CI runner | CI | 1 |
 | E2E | All Playwright tests pass on main | SPEC §11 | `pnpm test:e2e` | CI | 1 |
 | Accessibility | Zero axe critical/serious; Lighthouse a11y ≥ 95 | SPEC §11 (external check) | `@axe-core/playwright` in E2E; Lighthouse CI | CI / preview | 1 (axe), 9 (LHCI) |

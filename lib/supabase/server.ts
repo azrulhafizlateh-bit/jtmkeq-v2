@@ -22,8 +22,9 @@ export async function createServerSupabase(): Promise<SupabaseClient<Database>> 
               cookieStore.set(name, value, options);
             }
           } catch {
-            // Server Components cannot set cookies. This is safe to ignore
-            // because the proxy refreshes the session and writes the cookies.
+            // Server Components cannot set cookies, so this throws there and is
+            // safe to ignore. Session refresh will be done by proxy.ts, which
+            // lands in Phase 1 Task 1.4.
           }
         },
       },

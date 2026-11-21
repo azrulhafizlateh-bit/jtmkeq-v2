@@ -45,7 +45,7 @@ A row only counts as enforced from its phase onward; before that it is a commitm
 
 | Metric | Today | Direction |
 |---|---|---|
-| Client JS on `/` (first load) | not measured (no code yet) | record at Phase 0, must not grow > 10% without a reason |
+| Client JS on `/` (first load) | 461,344 B uncompressed / 136,323 B gzip -9 (≈133 KB), 6 chunks. Measured 2026-11-21 from `.next/diagnostics/route-bundle-stats.json` (`firstLoadUncompressedJsBytes`, Next 16 prints no size table); gzip = sum of `gzip -9` on its `firstLoadChunkPaths` | record at Phase 0, must not grow > 10% without a reason |
 | Project-wide coverage (outside `lib/`) | n/a | must not fall once recorded |
 
 ## Exceptions

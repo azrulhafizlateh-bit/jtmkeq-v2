@@ -1,20 +1,19 @@
-// Blocks destructive DB commands unless a non-production dev project is linked.
+// Blocks DB commands unless a non-production dev project is linked.
+// Run with `node --env-file-if-exists=.env.local` so SUPABASE_PROD_REF loads.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { checkGuard } from "./db-guard-lib.mjs";
 
 const refFile = join(process.cwd(), "supabase", ".temp", "project-ref");
+const linkedRef = existsSync(refFile) ? readFileSync(refFile, "utf8") : "";
 
-if (!existsSync(refFile)) {
-  console.error("Refusing: no linked project. Run `pnpm db:link` to link a dev project first.");
+const result = checkGuard({
+  linkedRef,
+  prodRef: process.env.SUPABASE_PROD_REF,
+});
+
+if (!result.ok) {
+  console.error(result.message);
   process.exit(1);
 }
-
-const linkedRef = readFileSync(refFile, "utf8").trim();
-const prodRef = (process.env.SUPABASE_PROD_REF ?? "").trim();
-
-if (prodRef !== "" && linkedRef === prodRef) {
-  console.error("Refusing: linked project is PROD");
-  process.exit(1);
-}
-
-console.log(`db-guard: linked project ${linkedRef} is not PROD, continuing.`);
+console.log(result.message);

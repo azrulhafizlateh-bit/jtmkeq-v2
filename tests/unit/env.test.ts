@@ -98,16 +98,18 @@ describe("serverEnv", () => {
     expect(() => serverEnv()).toThrow(URL_KEY);
   });
 
-  it("never leaks the service key value in an error message", () => {
+  it("never leaks an invalid service key value in an error message", () => {
     setValidEnv();
-    vi.stubEnv(URL_KEY, "not-a-url");
+    const badSecret = "sb_secret_leak me please";
+    vi.stubEnv(SERVICE_KEY, badSecret);
     let message = "";
     try {
       serverEnv();
     } catch (error) {
       message = error instanceof Error ? error.message : String(error);
     }
-    expect(message).toContain(URL_KEY);
-    expect(message).not.toContain(SECRET);
+    expect(message).toContain(SERVICE_KEY);
+    expect(message).not.toContain(badSecret);
+    expect(message).not.toContain("leak");
   });
 });

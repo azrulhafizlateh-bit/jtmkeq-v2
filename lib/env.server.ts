@@ -4,7 +4,7 @@ import { formatEnvError, publicEnv, type PublicEnv } from "@/lib/env";
 
 const serverSchema = z.object({
   // Accepts both the legacy service_role JWT and the newer sb_secret_ key.
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).regex(/^\S+$/, "must not contain whitespace"),
   DEMO_MODE: z
     .string()
     .optional()

@@ -16,10 +16,10 @@
     "test:e2e": "playwright test",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
     "db:link": "supabase link",
-    "db:push": "node --env-file-if-exists=.env.local scripts/db-guard.mjs && supabase db push",
-    "db:reset": "node --env-file-if-exists=.env.local scripts/db-guard.mjs && supabase db reset --linked",
-    "db:seed": "node --env-file-if-exists=.env.local scripts/db-guard.mjs && supabase db push --include-seed",
-    "db:types": "supabase gen types typescript --linked > lib/supabase/database.types.ts",
+    "db:push": "node --env-file-if-exists=.env.local scripts/db-guard.mjs && supabase db push --remote",
+    "db:reset": "node --env-file-if-exists=.env.local scripts/db-guard.mjs && supabase db reset --remote",
+    "db:seed": "node --env-file-if-exists=.env.local scripts/db-guard.mjs && supabase db push --remote --include-seed",
+    "db:types": "supabase gen types typescript --remote > lib/supabase/database.types.ts",
     "db:test": "supabase test db"
   },
   "dependencies": {

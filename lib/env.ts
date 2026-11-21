@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const publicSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
+  NEXT_PUBLIC_SUPABASE_URL: z.url({ protocol: /^https?$/ }),
   // Accepts both the legacy anon JWT and the newer sb_publishable_ key.
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 });

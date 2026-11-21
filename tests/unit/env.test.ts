@@ -53,6 +53,12 @@ describe("publicEnv", () => {
     expect(() => publicEnv()).toThrow(URL_KEY);
   });
 
+  it("rejects a non-http(s) URL naming the key", () => {
+    setValidEnv();
+    vi.stubEnv(URL_KEY, "ftp://x");
+    expect(() => publicEnv()).toThrow(URL_KEY);
+  });
+
   it("throws a clear error when env is absent", () => {
     expect(() => publicEnv()).toThrow(/Invalid environment/);
   });

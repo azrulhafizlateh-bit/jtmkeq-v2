@@ -33,6 +33,27 @@ export type Database = {
   };
   public: {
     Tables: {
+      login_attempts: {
+        Row: {
+          created_at: string;
+          id: number;
+          key_hash: string;
+          success: boolean;
+        };
+        Insert: {
+          created_at?: string;
+          id?: number;
+          key_hash: string;
+          success: boolean;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          key_hash?: string;
+          success?: boolean;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           created_at: string;
@@ -81,7 +102,12 @@ export type Database = {
         Args: never;
         Returns: Database["public"]["Enums"]["user_role"];
       };
+      check_login_allowed: { Args: { p_key_hash: string }; Returns: boolean };
       is_active_user: { Args: never; Returns: boolean };
+      record_login_attempt: {
+        Args: { p_key_hash: string; p_success: boolean };
+        Returns: undefined;
+      };
     };
     Enums: {
       user_role: "phep" | "pa" | "kj";

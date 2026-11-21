@@ -1,0 +1,311 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design tokens: DESIGN.md sections 2-4 (binding). Raw tokens use the DESIGN.md
+ * names; the variable names that shadcn expects are aliased onto them below.
+ */
+:root {
+  --bg: #f3f6f4;
+  --surface: #ffffff;
+  --surface-2: #eaf0ec;
+  --border: #d5ded8;
+  --border-subtle: #e6ece8;
+  --fg: #10201a;
+  --fg-muted: #3d4d45;
+  --fg-subtle: #5e6e66;
+
+  --rail: #0e5a3a;
+  --rail-fg: #ffffff;
+  --rail-active-bg: #ffffff;
+  --rail-active-fg: #0e5a3a;
+
+  --primary: #0e5a3a;
+  --primary-fg: #ffffff;
+  --primary-hover: #0a4a2f;
+
+  --info: #1f4e9a;
+  --badge: #f2c230;
+  --badge-fg: #10201a;
+  --destructive: #b4271f;
+  --destructive-fg: #ffffff;
+  --ring: #1f4e9a;
+  --ring-on-rail: #f2c230;
+
+  /* Status (SPEC section 10): solid = dots/marks, soft = chip fill, fg = chip text */
+  --positive-solid: #c8322b;
+  --positive-soft: #fbe8e6;
+  --positive-fg: #8f1f19;
+  --close-contact-solid: #d98a0b;
+  --close-contact-soft: #fcf0d9;
+  --close-contact-fg: #7a4a00;
+  --released-solid: #2f9e5c;
+  --released-soft: #e2f4e9;
+  --released-fg: #17663a;
+  --pending-solid: #5b6573;
+  --pending-soft: #eef0f3;
+  --pending-fg: #3a424d;
+  --rejected-solid: #b4271f;
+  --rejected-soft: transparent;
+  --rejected-fg: #8f1f19;
+  --verified-solid: #0e5a3a;
+  --verified-soft: #e2efe8;
+  --verified-fg: #0e5a3a;
+
+  --chart-1: #0e5a3a;
+  --chart-2: #1f4e9a;
+  --chart-3: #b8860b;
+  --chart-4: #7a4a1e;
+  --chart-5: #0f7c8c;
+  --chart-6: #6b7a72;
+
+  --radius: 4px;
+  --overlay-shadow: 0 8px 24px rgb(16 32 26 / 0.14);
+
+  /* Type sizes that differ between mobile and desktop (DESIGN.md section 3) */
+  --fs-h1: 22px;
+  --lh-h1: 28px;
+  --fs-body: 16px;
+  --lh-body: 24px;
+
+  /* shadcn aliases */
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--surface);
+  --card-foreground: var(--fg);
+  --popover: var(--surface);
+  --popover-foreground: var(--fg);
+  --primary-foreground: var(--primary-fg);
+  --secondary: var(--surface);
+  --secondary-foreground: var(--primary);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--fg-muted);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--fg);
+  --destructive-foreground: var(--destructive-fg);
+  --input: var(--border);
+  --sidebar: var(--rail);
+  --sidebar-foreground: var(--rail-fg);
+  --sidebar-primary: var(--rail-active-bg);
+  --sidebar-primary-foreground: var(--rail-active-fg);
+  --sidebar-accent: var(--rail-active-bg);
+  --sidebar-accent-foreground: var(--rail-active-fg);
+  --sidebar-border: var(--rail-fg);
+  --sidebar-ring: var(--ring-on-rail);
+}
+
+.dark {
+  --bg: #0c1411;
+  --surface: #121c18;
+  --surface-2: #18241f;
+  --border: #2a3a33;
+  --border-subtle: #1f2c26;
+  --fg: #e8efea;
+  --fg-muted: #a9b8b0;
+  --fg-subtle: #8a9a92;
+
+  --rail: #0d4d33;
+  --rail-fg: #ffffff;
+  --rail-active-bg: #ffffff;
+  --rail-active-fg: #0d4d33;
+
+  --primary: #3dbe85;
+  --primary-fg: #04110b;
+  --primary-hover: #55cc97;
+
+  --info: #7fa8f0;
+  --badge: #f2c230;
+  --badge-fg: #10201a;
+  --destructive: #e5534b;
+  --destructive-fg: #1a0b0a;
+  --ring: #7fa8f0;
+  --ring-on-rail: #f2c230;
+
+  --positive-soft: #3a1714;
+  --positive-fg: #f5a39d;
+  --close-contact-soft: #3a2a0c;
+  --close-contact-fg: #f3c46e;
+  --released-soft: #12301f;
+  --released-fg: #8adba9;
+  --pending-soft: #1e242b;
+  --pending-fg: #c3cad3;
+  --rejected-fg: #f5a39d;
+  --verified-soft: #123326;
+  --verified-fg: #8adba9;
+
+  --chart-1: #3dbe85;
+  --chart-2: #7fa8f0;
+  --chart-3: #e8c25a;
+  --chart-4: #c9915c;
+  --chart-5: #5cc4d2;
+  --chart-6: #a9b8b0;
+
+  --overlay-shadow: 0 8px 24px rgb(0 0 0 / 0.4);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --fs-h1: 28px;
+    --lh-h1: 34px;
+    --fs-body: 15px;
+    --lh-body: 22px;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+
+  --color-rail: var(--rail);
+  --color-rail-fg: var(--rail-fg);
+  --color-rail-active-bg: var(--rail-active-bg);
+  --color-rail-active-fg: var(--rail-active-fg);
+
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-hover: var(--primary-hover);
+  --color-info: var(--info);
+  --color-badge: var(--badge);
+  --color-badge-fg: var(--badge-fg);
+  --color-destructive: var(--destructive);
+  --color-destructive-fg: var(--destructive-fg);
+  --color-ring: var(--ring);
+  --color-ring-on-rail: var(--ring-on-rail);
+
+  --color-positive: var(--positive-solid);
+  --color-positive-soft: var(--positive-soft);
+  --color-positive-fg: var(--positive-fg);
+  --color-close-contact: var(--close-contact-solid);
+  --color-close-contact-soft: var(--close-contact-soft);
+  --color-close-contact-fg: var(--close-contact-fg);
+  --color-released: var(--released-solid);
+  --color-released-soft: var(--released-soft);
+  --color-released-fg: var(--released-fg);
+  --color-pending: var(--pending-solid);
+  --color-pending-soft: var(--pending-soft);
+  --color-pending-fg: var(--pending-fg);
+  --color-rejected: var(--rejected-solid);
+  --color-rejected-soft: var(--rejected-soft);
+  --color-rejected-fg: var(--rejected-fg);
+  --color-verified: var(--verified-solid);
+  --color-verified-soft: var(--verified-soft);
+  --color-verified-fg: var(--verified-fg);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+
+  /* shadcn names */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Fonts: Overpass and Overpass Mono, loaded in app/layout.tsx */
+  --font-sans: var(--font-overpass), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-overpass-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  /* Radius: 2 chips, 4 controls/plates/panels, 8 dialogs/sheets/popovers */
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
+  --radius-3xl: 8px;
+  --radius-4xl: 8px;
+
+  --shadow-overlay: var(--overlay-shadow);
+
+  /* Type scale (DESIGN.md section 3) */
+  --text-display: 40px;
+  --text-display--line-height: 44px;
+  --text-display--font-weight: 800;
+  --text-h1: var(--fs-h1);
+  --text-h1--line-height: var(--lh-h1);
+  --text-h1--font-weight: 800;
+  --text-h2: 18px;
+  --text-h2--line-height: 24px;
+  --text-h2--font-weight: 800;
+  --text-body: var(--fs-body);
+  --text-body--line-height: var(--lh-body);
+  --text-table: 14px;
+  --text-table--line-height: 20px;
+  --text-small: 13px;
+  --text-small--line-height: 18px;
+  --text-label: 12px;
+  --text-label--line-height: 16px;
+  --text-label--font-weight: 700;
+  --text-label--letter-spacing: 0.08em;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    @apply font-sans;
+    accent-color: var(--primary);
+  }
+  body {
+    @apply bg-bg text-body text-fg antialiased;
+    caret-color: var(--primary);
+    scrollbar-color: var(--border) var(--bg);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--rail);
+    color: var(--rail-fg);
+  }
+  .font-mono,
+  code,
+  kbd,
+  samp {
+    font-variant-numeric: tabular-nums;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

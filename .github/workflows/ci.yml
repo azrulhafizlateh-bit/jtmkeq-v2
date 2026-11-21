@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Quality (format, lint, types, unit tests, audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      # No `version` input: pnpm/action-setup reads `packageManager` from package.json.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      # Vitest coverage thresholds (lib/** >= 70%) live in vitest.config.mts and fail this step.
+      - run: pnpm test:coverage
+      - run: pnpm audit --audit-level=high
+
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # full history so every past commit is scanned
+      # gitleaks-action runs `gitleaks detect --redact`, so findings never print secret values.
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # GITLEAKS_LICENSE is only required for organisation-owned repos.
+          # This is a personal-account repo, so no license secret is set.
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+  db:
+    name: Database (migrations + pgTAP)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: supabase/setup-cli@v3 # CLI version is detected from pnpm-lock.yaml
+      # Only Postgres, auth, REST and storage are needed for migrations and RLS tests.
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,supavisor
+      - run: supabase db reset
+      - run: supabase test db
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
+
+  e2e:
+    name: E2E (Playwright)
+    needs: [quality]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v3
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor
+      - run: supabase db reset # applies migrations and supabase/seed.sql
+      - name: Write .env.local from local Supabase (values are never printed)
+        run: |
+          set -euo pipefail
+          supabase status -o env > "$RUNNER_TEMP/supabase.env"
+          # Prints the value of the first variable that exists, trying legacy then new names.
+          get() {
+            for name in "$@"; do
+              line=$(grep -E "^${name}=" "$RUNNER_TEMP/supabase.env" | head -n 1 || true)
+              if [ -n "$line" ]; then
+                value="${line#*=}"
+                value="${value%\"}"
+                value="${value#\"}"
+                printf '%s' "$value"
+                return 0
+              fi
+            done
+            return 1
+          }
+          url=$(get API_URL)
+          anon=$(get ANON_KEY PUBLISHABLE_KEY)
+          service=$(get SERVICE_ROLE_KEY SECRET_KEY)
+          echo "::add-mask::$anon"
+          echo "::add-mask::$service"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$url"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$anon"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$service"
+          } >> .env.local
+          rm "$RUNNER_TEMP/supabase.env"
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
